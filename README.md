@@ -30,7 +30,7 @@ Pipeline for generating AI character files and training datasets by scraping pub
 
 ## Usage
 
-### Twitter Collection
+### Twitter Collection 
 ```bash
 npm run twitter -- username
 ```
@@ -81,4 +81,3 @@ Example without date: `npm run generate-virtuals -- pmarca`
 
 The generated character file will be in the `pipeline/[username]/[date]/character/character.json` directory.
 The generated tweet dataset file will be in `pipeline/[username]/[date]/raw/tweets.json`.
-

@@ -1132,7 +1132,7 @@ async saveCookies() {
       // Cleanup fallback system
       if (this.cluster) {
         await this.cluster.close();
-        Logger.success("�� Cleaned up fallback system");
+        Logger.success("🔒 Cleaned up fallback system");
       }
 
       Logger.success("✨ Cleanup complete");
