@@ -12,36 +12,20 @@ async function promptForMergeOptions(sourceAccounts, availableTweets) {
       type: 'number',
       name: 'tweetsPerAccount',
       message: 'How many top tweets to include from each account?',
-      default: 50,
-      validate: (value) => {
-        if (value <= 0) return 'Please enter a positive number';
-        const maxTweets = Math.min(...availableTweets);
-        if (value > maxTweets) return `Maximum available tweets is ${maxTweets}`;
-        return true;
-      }
+      default: 50
     },
     {
       type: 'confirm',
-      name: 'filterRetweets',
+      name: 'excludeRetweets',
       message: 'Exclude retweets?',
       default: true
     },
     {
       type: 'list',
-      name: 'sortBy',
+      name: 'rankingMethod',
       message: 'How should tweets be ranked?',
-      choices: [
-        { name: 'Total engagement (likes + retweets)', value: 'total' },
-        { name: 'Likes only', value: 'likes' },
-        { name: 'Retweets only', value: 'retweets' },
-        { name: 'Most recent', value: 'date' }
-      ]
-    },
-    {
-      type: 'confirm',
-      name: 'reviewSample',
-      message: 'Would you like to review a sample of selected tweets before merging?',
-      default: true
+      choices: ['Total engagement (likes + retweets)', 'Likes only', 'Retweets only'],
+      default: 'Total engagement (likes + retweets)'
     }
   ]);
 
@@ -49,29 +33,7 @@ async function promptForMergeOptions(sourceAccounts, availableTweets) {
 }
 
 async function displayTweetSample(tweets, sourceAccounts) {
-  console.log('\n📝 Sample of Selected Tweets:\n');
-  
-  for (const account of sourceAccounts) {
-    const accountTweets = tweets.filter(t => t.username === account);
-    if (accountTweets.length === 0) continue;
-
-    console.log(chalk.cyan(`\n@${account}'s Top Tweets:`));
-    accountTweets.slice(0, 3).forEach((tweet, i) => {
-      console.log(chalk.white(`\n${i + 1}. ${tweet.text}`));
-      console.log(chalk.gray(`❤️ ${tweet.likes} | 🔄 ${tweet.retweetCount} | 📅 ${new Date(tweet.timestamp).toLocaleDateString()}`));
-    });
-  }
-
-  const { proceed } = await inquirer.prompt([
-    {
-      type: 'confirm',
-      name: 'proceed',
-      message: 'Proceed with merging these tweets?',
-      default: true
-    }
-  ]);
-
-  return proceed;
+  // This function is no longer used in the new version
 }
 
 async function main() {
@@ -109,18 +71,9 @@ async function main() {
     // Create merged character with options
     const mergedTweets = await pipeline.createMergedCharacter(sourceAccounts, {
       tweetsPerAccount: options.tweetsPerAccount,
-      filterRetweets: options.filterRetweets,
-      sortBy: options.sortBy
+      filterRetweets: !options.excludeRetweets,
+      sortBy: options.rankingMethod
     });
-
-    // Show sample if requested
-    if (options.reviewSample) {
-      const proceed = await displayTweetSample(mergedTweets, sourceAccounts);
-      if (!proceed) {
-        Logger.info('Merge cancelled by user');
-        process.exit(0);
-      }
-    }
 
     Logger.success('✨ Character merge completed successfully!');
 
