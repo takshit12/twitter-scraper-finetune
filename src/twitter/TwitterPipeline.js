@@ -1135,10 +1135,99 @@ async saveCookies() {
         Logger.success("🔒 Cleaned up fallback system");
       }
 
+      await this.saveProgress(null, null, this.stats.uniqueTweets, {
+        completed: true,
+        endTime: new Date().toISOString(),
+        fallbackUsed: this.stats.fallbackUsed,
+        fallbackCount: this.stats.fallbackCount,
+        rateLimitHits: this.stats.rateLimitHits,
+      });
+
       Logger.success("✨ Cleanup complete");
     } catch (error) {
       Logger.warn(`⚠️  Cleanup error: ${error.message}`);
+      await this.saveProgress(null, null, this.stats.uniqueTweets, {
+        completed: true,
+        endTime: new Date().toISOString(),
+        error: error.message,
+      });
     }
+  }
+
+  async logError(error, context = {}) {
+    const errorLog = {
+      timestamp: new Date().toISOString(),
+      error: {
+        message: error.message,
+        stack: error.stack,
+      },
+      context: {
+        ...context,
+        username: this.username,
+        sessionDuration: Date.now() - this.stats.startTime,
+        rateLimitHits: this.stats.rateLimitHits,
+        fallbackUsed: this.stats.fallbackUsed,
+        fallbackCount: this.stats.fallbackCount,
+      },
+      stats: this.stats,
+      config: {
+        delays: {
+          min: this.config.twitter.minDelayBetweenRequests,
+          max: this.config.twitter.maxDelayBetweenRequests,
+        },
+        retries: this.config.twitter.maxRetries,
+        fallback: {
+          enabled: this.config.fallback.enabled,
+          sessionDuration: this.config.fallback.sessionDuration,
+        },
+      },
+    };
+
+    const errorLogPath = path.join(
+      this.dataOrganizer.baseDir,
+      "meta",
+      "error_log.json"
+    );
+
+    try {
+      let existingLogs = [];
+      try {
+        const existing = await fs.readFile(errorLogPath, "utf-8");
+        existingLogs = JSON.parse(existing);
+      } catch {
+        // File doesn't exist yet
+      }
+
+      existingLogs.push(errorLog);
+
+      // Keep only recent errors
+      if (existingLogs.length > 100) {
+        existingLogs = existingLogs.slice(-100);
+      }
+
+      await fs.writeFile(errorLogPath, JSON.stringify(existingLogs, null, 2));
+    } catch (logError) {
+      Logger.error(`Failed to save error log: ${logError.message}`);
+    }
+  }
+
+  async saveProgress(startDate, endDate, totalTweets, progress) {
+    const progressPath = path.join(this.dataOrganizer.baseDir, 'meta', 'progress.json');
+    let existingProgress = {};
+
+    try {
+      const existing = await fs.readFile(progressPath, 'utf-8');
+      existingProgress = JSON.parse(existing);
+    } catch {
+      // File doesn't exist yet
+    }
+
+    existingProgress.progress = progress;
+    existingProgress.totalTweets = totalTweets;
+    existingProgress.startDate = startDate;
+    existingProgress.endDate = endDate;
+
+    await fs.writeFile(progressPath, JSON.stringify(existingProgress, null, 2));
   }
 }
 

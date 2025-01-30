@@ -10,7 +10,8 @@
     "character": "node src/character/GenerateCharacter.js",
     "finetune": "node ./scripts/finetune.js",
     "finetune:test": "node ./scripts/finetune.js --test",
-    "merge-characters": "node src/twitter/merge_characters.js"
+    "merge-characters": "node src/twitter/merge_characters.js",
+    "generate-merged-virtuals": "node src/virtuals/GenerateMergedCharacter.js"
   },
   "keywords": [],
   "author": "dreaminglucid",
