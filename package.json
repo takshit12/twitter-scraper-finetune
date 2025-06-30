@@ -10,6 +10,7 @@
     "character": "node src/character/GenerateCharacter.js",
     "finetune": "node ./scripts/finetune.js",
     "finetune:test": "node ./scripts/finetune.js --test",
+    "convert-vertex-ai": "node scripts/convert_to_vertex_ai.js",
     "merge-characters": "node src/twitter/merge_characters.js",
     "generate-merged-virtuals": "node src/virtuals/GenerateMergedCharacter.js"
   },
